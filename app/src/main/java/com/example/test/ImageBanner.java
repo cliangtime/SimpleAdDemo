@@ -31,6 +31,8 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
     private static final int DEFAULT_DOT_SIZE = 10;              //底部小圆点的大小
     private static final long times = 2000;                     //每张图片的轮播事件
 
+    public boolean isCode;     //是否是代码new 出来的
+    public int mHeight = 300; //viewpager的默认高度
     private int x1;
     private ViewPager mViewPager;
     private LinearLayout ll_dots;
@@ -86,6 +88,14 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
         }
     };
 
+    //isCode,mHeight
+    public void setHeightType(boolean isCode, int height) {
+        this.isCode = isCode;
+        this.mHeight = height;
+    }
+
+
+
     //定义一个viewpager的点击事件的接口回调
     public interface OnViewPagerClickListener {
         void ClickListener(View v, int position_in_data);
@@ -139,6 +149,21 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
         refreshDots(0);
     }
 
+    /**
+     * 如果使用代码，必须要重写onMeasure方法
+     * mHeight为viewpager的高度
+     * @param widthMeasureSpec
+     * @param heightMeasureSpec
+     */
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        if (isCode) {
+            heightMeasureSpec = MeasureSpec.makeMeasureSpec(mHeight,
+                    MeasureSpec.EXACTLY);
+        }
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+    }
+
     private Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -177,6 +202,7 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
 
     @Override
     public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
 
     }
 
