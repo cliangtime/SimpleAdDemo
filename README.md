@@ -5,13 +5,13 @@
 1. 复制 ImageBanner这个复制到你的工程中
 //使用代码进行设置
 
-           imageBanner = new ImageBanner(getActivity());
-           imageBanner.setHeightType(true,300);
+ 	   imageBanner = new ImageBanner(getActivity());
+	   imageBanner.setImagesScaleType(ImageView.ScaleType.CENTER_CROP);    、           //设置图片的缩放模式
 
 ||接4
 
 2. 把自定义View引入到布局文件中去，并定义一个id
-	    //高度根据需求写死。。（等改）
+	    //高度根据需求写
 
 	    <com.example.test.ImageBanner
 	    android:id="@+id/photo"
@@ -29,16 +29,9 @@
  
 5. 动态添加图片，想添加几张就添加几张
 		
-		 mImageBanner.addImage(getImageView(R.mipmap.smiley_0));
-        mImageBanner.addImage(getImageView(R.mipmap.smiley_1));
-        mImageBanner.addImage(getImageView(R.mipmap.smiley_2));
-
-		   private ImageView getImageView(int resId) {
-        //填充的布局
-        ImageView image = new ImageView(this);
-        image.setImageResource(resId);
-        return image;
-	   	 }
+		mImageBanner.addImage(R.mipmap.smiley_0);
+		mImageBanner.addImage(R.mipmap.smiley_1);
+		mImageBanner.addImage(R.mipmap.smiley_2);
 
 6. viewpager的点击事件
 
