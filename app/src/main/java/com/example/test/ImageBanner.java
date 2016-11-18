@@ -1,6 +1,8 @@
 package com.example.test;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -9,9 +11,11 @@ import android.os.Message;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
@@ -30,15 +34,34 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
     private static final int SELECTED_DOT_COLOR = Color.DKGRAY;  //小圆点选中的颜色
     private static final int DEFAULT_DOT_SIZE = 10;              //底部小圆点的大小
     private static final long times = 2000;                     //每张图片的轮播事件
+    private static final String TAG = "Action";
 
-    public boolean isCode;     //是否是代码new 出来的
-    public int mHeight = 300; //viewpager的默认高度
+    private ImageView.ScaleType scaleType = ImageView.ScaleType.FIT_CENTER; //设置图片的缩放类型
+
+    private int MaxHeight; //测量得到的最大高度
     private int x1;
     private ViewPager mViewPager;
     private LinearLayout ll_dots;
 
     private ArrayList<View> images = new ArrayList<>();
     private ArrayList<Dot> dots = new ArrayList<>();
+
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            switch (msg.what) {
+                case 0:
+                    //图片切换监听
+                    int currentItem = mViewPager.getCurrentItem();
+                    mViewPager.setCurrentItem(currentItem + 1);
+                    onPageSelected(currentItem + 1);
+                    mHandler.sendEmptyMessageDelayed(0, times);
+                    break;
+            }
+        }
+    };
+
 
     private PagerAdapter adapter = new PagerAdapter() {
         @Override
@@ -71,12 +94,12 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
                 }
             });
 
-            //view的长按点击事件
+//            //view的长按点击事件
             image.setOnLongClickListener(new OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
                     reMoveLooper();
-                    return false;
+                    return true;
                 }
             });
             if (image.getParent() != null) {
@@ -88,13 +111,14 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
         }
     };
 
-    //isCode,mHeight
-    public void setHeightType(boolean isCode, int height) {
-        this.isCode = isCode;
-        this.mHeight = height;
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_UP) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler.sendEmptyMessageDelayed(0, times);
+        }
+        return super.dispatchTouchEvent(ev);
     }
-
-
 
     //定义一个viewpager的点击事件的接口回调
     public interface OnViewPagerClickListener {
@@ -107,6 +131,10 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
         this.mOnViewPagerClickListener = mOnViewPagerClickListener;
     }
 
+
+    public void setImagesScaleType(ImageView.ScaleType scaleType) {
+        this.scaleType = scaleType;
+    }
 
     public ImageBanner(Context context) {
         this(context, null);
@@ -135,7 +163,8 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
     private LinearLayout.LayoutParams params;
 
     //初始化数据
-    public void addImage(View view) {
+    public void addImage(int ids) {
+        View view = getImagView(ids);
         if (params == null) {
             params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
             params.setMargins(5, 5, 5, 5);
@@ -149,36 +178,33 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
         refreshDots(0);
     }
 
-    /**
-     * 如果使用代码，必须要重写onMeasure方法
-     * mHeight为viewpager的高度
-     * @param widthMeasureSpec
-     * @param heightMeasureSpec
-     */
+
+    private View getImagView(int ids) {
+        ImageView iv = new ImageView(App.sContext);
+        //TODO:图片的缩放模式
+        iv.setScaleType(scaleType);
+        iv.setImageResource(ids);
+        getMaxHeight(ids);
+        return iv;
+    }
+
+    private void getMaxHeight(int ids) {
+        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), ids);
+        int height = bitmap.getHeight();
+        if (height > MaxHeight) {
+            MaxHeight = height;
+            Log.d("MaxHeight", String.valueOf(MaxHeight));
+        }
+    }
+
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        if (isCode) {
-            heightMeasureSpec = MeasureSpec.makeMeasureSpec(mHeight,
+        if (MaxHeight != 0) {
+            heightMeasureSpec = MeasureSpec.makeMeasureSpec(MaxHeight,
                     MeasureSpec.EXACTLY);
         }
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
-
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            switch (msg.what) {
-                case 0:
-                    //图片切换监听
-                    int currentItem = mViewPager.getCurrentItem();
-                    mViewPager.setCurrentItem(currentItem + 1);
-                    onPageSelected(currentItem + 1);
-                    mHandler.sendEmptyMessageDelayed(0, times);
-                    break;
-            }
-        }
-    };
 
     /***
      * 自动轮播功能
@@ -221,12 +247,14 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                Log.d(TAG, "onTouchEvent: ACTION_DOWN");
                 x1 = (int) event.getX();
                 reMoveLooper();
                 break;
         }
         return super.onTouchEvent(event);
     }
+
 
     //由于ViewPager 没有点击事件，可以通过对VIewPager的setOnTouchListener进行监听已达到实现点击事件的效果
     @Override
@@ -235,6 +263,9 @@ public class ImageBanner extends RelativeLayout implements ViewPager.OnPageChang
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 x1 = (int) event.getX();
+                break;
+            case MotionEvent.ACTION_CANCEL:
+                mHandler.sendEmptyMessageDelayed(0, times);
                 break;
             case MotionEvent.ACTION_UP:
                 int x2 = (int) event.getX();

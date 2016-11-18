@@ -1,22 +1,20 @@
 # SimpleAdDemo
 一个简易的viewPager实现的自定义广告条
 
-###使用方法<其实就是一个自定义控件>
+###使用方法<其实就是一个自定义控件>(还有很多未知的bug)
 1. 复制 ImageBanner这个复制到你的工程中
 //使用代码进行设置
 
            imageBanner = new ImageBanner(getActivity());
-           imageBanner.setHeightType(true,300);
 
 ||接4
 
 2. 把自定义View引入到布局文件中去，并定义一个id
-	    //高度根据需求写死。。（等改）
 
 	    <com.example.test.ImageBanner
 	    android:id="@+id/photo"
 	    android:layout_width="match_parent"
-	    android:layout_height="match_parent"/>
+	    android:layout_height="wrap_content"/>
 3. 通过findViewById找到这个控件
 	
 		mImageBanner = (ImageBanner) findViewById(R.id.photo);
@@ -29,18 +27,13 @@
  
 5. 动态添加图片，想添加几张就添加几张
 		
-		 mImageBanner.addImage(getImageView(R.mipmap.smiley_0));
-        mImageBanner.addImage(getImageView(R.mipmap.smiley_1));
-        mImageBanner.addImage(getImageView(R.mipmap.smiley_2));
+		 mImageBanner.addImage(R.mipmap.smiley_0);
+         mImageBanner.addImage(R.mipmap.smiley_1);
+         mImageBanner.addImage(R.mipmap.smiley_2);
+6. 设置图片的缩放类型
 
-		   private ImageView getImageView(int resId) {
-        //填充的布局
-        ImageView image = new ImageView(this);
-        image.setImageResource(resId);
-        return image;
-	   	 }
 
-6. viewpager的点击事件
+7. viewpager的点击事件
 
 		 mImageBanner.setOnViewPagerClickListener(new ImageBanner.OnViewPagerClickListener() {
 		            @Override
@@ -48,8 +41,7 @@
 		                Toast.makeText(MainActivity.this,position+"被点击了",Toast.LENGTH_SHORT).show();
 		            }
 		        });
-		
-7. 最后一步
+8. 最后一步
 
 		//mImageBanner.reMoveLooper(); 停止轮播图的自动展示
 
